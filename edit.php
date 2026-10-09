@@ -23,52 +23,64 @@ if (!isset($_SESSION['user_id'])) {
 $userId = $_SESSION['user_id'];
 $recipeObj = new Recipe($pdo);
 $errors = [];
-$recipe = null;
-$categories = [];
 
 // [READ RECIPE ID]
 // First visit: the id comes from the link (GET).
 // After submitting: the id comes from the hidden form field (POST).
+// (int) turns a missing or invalid id into 0, which matches no recipe.
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+    $id = (int) filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
 } else {
-    $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-}
-if ($id === null || $id === false) {
-    $id = 0;
+    $id = (int) filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 }
 
-// [LOAD RECIPE AND CHECK OWNER]
-// We must know the recipe exists and belongs to this member before showing or saving the form.
+// [LOAD RECIPE, INGREDIENTS AND CATEGORIES]
 try {
+    $recipe = $recipeObj->find($id);
     $categories = $recipeObj->categories();
-    if ($id > 0) {
-        $recipe = $recipeObj->find($id);
+
+    $ingredients = [];
+    foreach ($recipeObj->ingredients($id) as $row) {
+        $ingredients[] = $row['name'];
     }
 } catch (PDOException $e) {
     error_log('Load recipe for edit failed: ' . $e->getMessage());
-    $errors[] = 'Could not load this recipe right now. Please try again.';
+    $_SESSION['flash_error'] = 'Could not load this recipe right now. Please try again.';
+    header('Location: index.php');
+    exit;
 }
 
-if ($recipe === null && !$errors) {
-    $errors[] = 'Recipe not found.';
-} elseif ($recipe !== null && (int) $recipe['user_id'] !== $userId) {
-    $errors[] = 'You can only edit your own recipes.';
-    $recipe = null;
+// [RECIPE NOT FOUND]
+if ($recipe === null) {
+    $_SESSION['flash_error'] = 'Recipe not found.';
+    header('Location: index.php');
+    exit;
 }
+
+// [OWNER CHECK]
+// Members may only edit what they themselves posted.
+if ((int) $recipe['user_id'] !== $userId) {
+    $_SESSION['flash_error'] = 'You can only edit your own recipes.';
+    header('Location: view.php?id=' . $id);
+    exit;
+}
+
+// [FILL FORM WITH CURRENT RECIPE]
+// These are the starting values. If the form was submitted, they are replaced below.
+$title       = $recipe['title'];
+$description = $recipe['description'];
+$categoryId  = (int) $recipe['category_id'];
+$steps       = $recipe['steps'];
 
 // [HANDLE EDIT FORM]
-if ($recipe !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title       = trim((string) filter_input(INPUT_POST, 'title'));
     $description = trim((string) filter_input(INPUT_POST, 'description'));
     $steps       = trim((string) filter_input(INPUT_POST, 'steps'));
-
-    $categoryId = filter_input(INPUT_POST, 'category_id', FILTER_VALIDATE_INT);
-    if ($categoryId === null || $categoryId === false) {
-        $categoryId = 0;
-    }
+    $categoryId  = (int) filter_input(INPUT_POST, 'category_id', FILTER_VALIDATE_INT);
 
     // [READ INGREDIENT LIST]
+    // ingredients[] arrives as an array. Keep only non-blank text values.
     $ingredients = [];
     $list = $_POST['ingredients'] ?? [];
     if (!is_array($list)) {
@@ -97,29 +109,11 @@ if ($recipe !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
         error_log('Edit recipe failed: ' . $e->getMessage());
         $errors[] = 'Could not save your changes. Please try again.';
     }
+}
 
-    if (!$ingredients) {
-        $ingredients = [''];
-    }
-} elseif ($recipe !== null) {
-    // [FILL FORM WITH CURRENT RECIPE]
-    $title       = $recipe['title'];
-    $description = $recipe['description'];
-    $categoryId  = (int) $recipe['category_id'];
-    $steps       = $recipe['steps'];
-
-    $ingredients = [];
-    try {
-        foreach ($recipeObj->ingredients($id) as $row) {
-            $ingredients[] = $row['name'];
-        }
-    } catch (PDOException $e) {
-        error_log('Load ingredients failed: ' . $e->getMessage());
-        $errors[] = 'Could not load the ingredients. Please try again.';
-    }
-    if (!$ingredients) {
-        $ingredients = [''];
-    }
+// Always show at least one ingredient box.
+if (!$ingredients) {
+    $ingredients = [''];
 }
 
 $pageTitle = 'Edit recipe';
@@ -139,12 +133,7 @@ require_once 'header.php';
     </ul>
 <?php endif; ?>
 
-<?php // The form only appears if the recipe exists and belongs to this member. ?>
-<?php if ($recipe !== null): ?>
-    <?php require_once 'recipe_form.php'; ?>
-    <p><a href="view.php?id=<?= (int) $id ?>">Cancel</a></p>
-<?php else: ?>
-    <p><a href="index.php">← Back to recipes</a></p>
-<?php endif; ?>
+<?php require_once 'recipe_form.php'; ?>
+<p><a href="view.php?id=<?= (int) $id ?>">Cancel</a></p>
 
 <?php require_once 'footer.php'; ?>

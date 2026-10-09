@@ -29,21 +29,16 @@ $recipes = [];
 
 // [READ SEARCH AND FILTER VALUES FROM GET]
 // filter_input() returns null when a value is missing; (string) turns that into ''.
-// FILTER_VALIDATE_INT returns false for anything that is not a whole number.
-$keyword = trim((string) filter_input(INPUT_GET, 'q'));
-
-$categoryId = filter_input(INPUT_GET, 'category', FILTER_VALIDATE_INT);
-if ($categoryId === null || $categoryId === false) {
-    $categoryId = 0; // 0 = all categories
-}
+// FILTER_VALIDATE_INT returns false for anything that is not a whole number;
+// (int) turns null/false into 0, which means "all categories".
+$keyword    = trim((string) filter_input(INPUT_GET, 'q'));
+$categoryId = (int) filter_input(INPUT_GET, 'category', FILTER_VALIDATE_INT);
 
 // [MY RECIPES FILTER] (our own extra feature)
 // index.php?mine=1 shows only the recipes the logged-in member posted.
+// $ownerId 0 means "everyone's recipes".
 $mineOnly = filter_input(INPUT_GET, 'mine', FILTER_VALIDATE_INT) === 1;
-$ownerId = 0;
-if ($mineOnly) {
-    $ownerId = $userId;
-}
+$ownerId  = $mineOnly ? $userId : 0;
 
 // [FETCH CATEGORIES AND RECIPES]
 try {
@@ -58,11 +53,7 @@ $pageTitle = 'Recipes';
 require_once 'header.php';
 ?>
 
-<?php if ($mineOnly): ?>
-    <h1>My Recipes</h1>
-<?php else: ?>
-    <h1>Latest Recipes</h1>
-<?php endif; ?>
+<h1><?= $mineOnly ? 'My Recipes' : 'Latest Recipes' ?></h1>
 
 <?php // [SEARCH FORM] method="get" because searching only reads data ?>
 <form method="get" action="index.php" class="search">
@@ -74,7 +65,7 @@ require_once 'header.php';
     <select name="category">
         <option value="0">All categories</option>
         <?php foreach ($categories as $category): ?>
-            <option value="<?= (int) $category['id'] ?>" <?php if ((int) $category['id'] === $categoryId): ?>selected<?php endif; ?>>
+            <option value="<?= (int) $category['id'] ?>" <?= (int) $category['id'] === $categoryId ? 'selected' : '' ?>>
                 <?= htmlspecialchars($category['name'], ENT_QUOTES, 'UTF-8') ?>
             </option>
         <?php endforeach; ?>
@@ -109,7 +100,7 @@ require_once 'header.php';
                 <span class="tag"><?= htmlspecialchars($recipe['category'], ENT_QUOTES, 'UTF-8') ?></span>
                 by <?= htmlspecialchars($recipe['username'], ENT_QUOTES, 'UTF-8') ?>
                 · <?= htmlspecialchars($recipe['posted_on'], ENT_QUOTES, 'UTF-8') ?>
-                <?php if ($recipe['updated_at'] !== null): ?>· edited<?php endif; ?>
+                <?= $recipe['updated_at'] !== null ? '· edited' : '' ?>
             </p>
             <p><?= htmlspecialchars($recipe['description'], ENT_QUOTES, 'UTF-8') ?></p>
         </li>

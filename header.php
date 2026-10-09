@@ -6,6 +6,8 @@ declare(strict_types=1);
  * The top of every page: <head>, site name, navigation and flash messages.
  * The page that includes this file sets $pageTitle first.
  */
+
+/** @var string $pageTitle  set by the including page (tells the code editor it exists) */
 ?>
 <!DOCTYPE html>
 <html lang="en">

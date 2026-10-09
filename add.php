@@ -38,10 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = trim((string) filter_input(INPUT_POST, 'description'));
     $steps       = trim((string) filter_input(INPUT_POST, 'steps'));
 
-    $categoryId = filter_input(INPUT_POST, 'category_id', FILTER_VALIDATE_INT);
-    if ($categoryId === null || $categoryId === false) {
-        $categoryId = 0;
-    }
+    // (int) turns a missing or invalid category into 0, which validate() rejects.
+    $categoryId = (int) filter_input(INPUT_POST, 'category_id', FILTER_VALIDATE_INT);
 
     // [READ INGREDIENT LIST]
     // ingredients[] arrives as an array. Keep only non-blank text values.
@@ -73,11 +71,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         error_log('Add recipe failed: ' . $e->getMessage());
         $errors[] = 'Could not save your recipe. Please try again.';
     }
+}
 
-    // If every ingredient box was blank, show one empty box again.
-    if (!$ingredients) {
-        $ingredients = [''];
-    }
+// Always show at least one ingredient box.
+if (!$ingredients) {
+    $ingredients = [''];
 }
 
 // [FETCH CATEGORIES FOR THE DROPDOWN]

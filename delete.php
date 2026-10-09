@@ -29,23 +29,21 @@ $userId = $_SESSION['user_id'];
 $recipeObj = new Recipe($pdo);
 
 // [READ RECIPE ID]
-$id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+// (int) turns a missing or invalid id into 0, which matches no recipe.
+$id = (int) filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
 
 // [DELETE OWN RECIPE]
-// Recipe::delete() checks the owner in its SQL and returns false if nothing was removed.
-if ($id === null || $id === false) {
-    $_SESSION['flash_error'] = 'Recipe not found.';
-} else {
-    try {
-        if ($recipeObj->delete($id, $userId)) {
-            $_SESSION['flash'] = 'Recipe deleted.';
-        } else {
-            $_SESSION['flash_error'] = 'You can only delete your own recipes.';
-        }
-    } catch (PDOException $e) {
-        error_log('Delete recipe failed: ' . $e->getMessage());
-        $_SESSION['flash_error'] = 'Could not delete the recipe. Please try again.';
+// Recipe::delete() checks the owner in its SQL and returns false if nothing was removed
+// (the id doesn't exist, or the recipe belongs to someone else).
+try {
+    if ($recipeObj->delete($id, $userId)) {
+        $_SESSION['flash'] = 'Recipe deleted.';
+    } else {
+        $_SESSION['flash_error'] = 'Recipe not found, or it is not yours to delete.';
     }
+} catch (PDOException $e) {
+    error_log('Delete recipe failed: ' . $e->getMessage());
+    $_SESSION['flash_error'] = 'Could not delete the recipe. Please try again.';
 }
 
 // [REDIRECT AFTER DELETE]

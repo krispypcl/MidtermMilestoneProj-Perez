@@ -29,19 +29,20 @@ $userId = $_SESSION['user_id'];
 $errors = [];
 
 // [READ FORM VALUES]
+// (int) turns a missing or invalid id into 0.
 $action    = (string) filter_input(INPUT_POST, 'action');
-$recipeId  = filter_input(INPUT_POST, 'recipe_id', FILTER_VALIDATE_INT);
-$commentId = filter_input(INPUT_POST, 'comment_id', FILTER_VALIDATE_INT);
+$recipeId  = (int) filter_input(INPUT_POST, 'recipe_id', FILTER_VALIDATE_INT);
+$commentId = (int) filter_input(INPUT_POST, 'comment_id', FILTER_VALIDATE_INT);
 $body      = trim((string) filter_input(INPUT_POST, 'body'));
 
-if ($recipeId === null || $recipeId === false) {
+if ($recipeId === 0) {
     $_SESSION['flash_error'] = 'Recipe not found.';
     header('Location: index.php');
     exit;
 }
 
 // [VALIDATE FORM INPUT]
-if ($action !== 'add' && $action !== 'update' && $action !== 'delete') {
+if (!in_array($action, ['add', 'update', 'delete'], true)) {
     $errors[] = 'Unknown action.';
 }
 if ($action === 'add' || $action === 'update') {
@@ -51,7 +52,7 @@ if ($action === 'add' || $action === 'update') {
         $errors[] = 'Comment must be 500 characters or less.';
     }
 }
-if (($action === 'update' || $action === 'delete') && !$commentId) {
+if (($action === 'update' || $action === 'delete') && $commentId === 0) {
     $errors[] = 'Comment not found.';
 }
 
