@@ -1,0 +1,100 @@
+/* style.css — Lutong Bahay: warm, simple, works on phone and desktop */
+:root {
+  --accent: #b45309;       /* adobo brown-orange */
+  --accent-dark: #92400e;
+  --accent-soft: #fdf3e7;
+  --bg: #f7f3ee;
+  --text: #2d2a26;
+  --muted: #7a7168;
+  --line: #e7dfd5;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+/* Header + navigation (wraps onto two lines on small phones) */
+header.site {
+  display: flex; flex-wrap: wrap; gap: .5rem 1rem;
+  align-items: center; justify-content: space-between;
+  max-width: 720px; margin: 0 auto; padding: 1rem;
+}
+.brand { font-weight: 700; font-size: 1.2rem; text-decoration: none; }
+nav { display: flex; flex-wrap: wrap; gap: .25rem 1rem; align-items: center; font-size: .95rem; }
+nav a { color: var(--text); text-decoration: none; }
+
+/* Main white card */
+.card {
+  max-width: 720px; margin: 0 auto 2rem; padding: 1.75rem;
+  background: #fff; border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, .06);
+  animation: fadeIn .25s ease-out;
+}
+@media (max-width: 760px) { .card { margin: 0 .75rem 1.5rem; padding: 1.1rem; } }
+h1, h2, h3 { line-height: 1.25; margin: 0 0 .5rem; }
+h2 { margin-top: 1.75rem; font-size: 1.2rem; }
+h3 { font-size: 1.1rem; }
+a { color: var(--accent); transition: color .15s; }
+a:hover, nav a:hover { color: var(--accent-dark); }
+.meta, .muted { color: var(--muted); font-size: .9rem; }
+.meta { margin: 0 0 .5rem; }
+
+/* Forms */
+label { display: block; margin: 1rem 0 .3rem; font-weight: 600; }
+input, select, textarea {
+  width: 100%; padding: .6rem .75rem; font: inherit; color: inherit;
+  background: #fff; border: 1px solid var(--line); border-radius: 8px;
+  transition: border-color .15s, box-shadow .15s;
+}
+textarea { min-height: 7rem; resize: vertical; }
+#ingredient-list input { margin-bottom: .4rem; }
+input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(180, 83, 9, .25);
+}
+
+/* Buttons: hover lifts, click presses down */
+button, .btn {
+  display: inline-block; margin-top: 1rem; padding: .55rem 1.1rem;
+  font: inherit; font-weight: 600; color: #fff; text-decoration: none;
+  background: var(--accent); border: 1px solid var(--accent); border-radius: 8px;
+  cursor: pointer; transition: background .15s, transform .15s;
+}
+button:hover, .btn:hover { background: var(--accent-dark); color: #fff; transform: translateY(-1px); }
+button:active, .btn:active { transform: scale(.97); }
+.secondary, .fav-btn { background: #fff; color: var(--accent); }
+.secondary:hover, .fav-btn:hover { background: var(--accent-soft); color: var(--accent-dark); }
+.fav-btn.saved { background: var(--accent-soft); }
+.danger { background: #b91c1c; border-color: #b91c1c; }
+.danger:hover { background: #991b1b; }
+button.link { margin: 0; padding: 0; border: 0; background: none; color: var(--text); font-weight: 400; }
+button.link:hover { background: none; color: var(--accent); transform: none; }
+.inline { display: inline; }
+.actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: 1rem 0; }
+.actions button, .actions .btn { margin-top: 0; }
+
+/* Search bar */
+.search { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; }
+.search input { flex: 2 1 220px; }
+.search select { flex: 1 1 150px; width: auto; }
+.search button { margin: 0; }
+
+/* Lists of recipes / comments */
+.list { list-style: none; padding: 0; margin: 0; }
+.list li { padding: 1rem 0; border-bottom: 1px solid var(--line); }
+.list li:last-child { border-bottom: 0; }
+.list p { margin: .25rem 0; }
+.tag { padding: .05rem .6rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent-dark); font-size: .8rem; }
+details summary { cursor: pointer; color: var(--accent); font-size: .9rem; }
+
+/* Messages */
+.msg { padding: .75rem 1rem; border-radius: 8px; animation: fadeIn .25s ease-out; }
+ul.msg { padding-left: 2rem; }
+.success { background: #ecfdf3; color: #166534; }
+.error { background: #fef2f2; color: #991b1b; }
+
+footer.site-foot { text-align: center; color: var(--muted); font-size: .85rem; padding-bottom: 2rem; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
